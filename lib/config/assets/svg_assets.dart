@@ -14,4 +14,5 @@ class SvgAssets {
   static const String minus = 'assets/icons/minus.svg';
   static const String heart = 'assets/icons/heart.svg';
   static const String category = 'assets/icons/category.svg';
+  static const String profile = 'assets/icons/profile.svg';
 }

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
@@ -63,10 +64,18 @@ class _ProductCardState extends State<ProductCard> {
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
                     padding: const EdgeInsets.all(12),
-                    child: Image.asset(
-                      widget.product.image,
-                      fit: BoxFit.contain,
-                    ),
+                    child: widget.product.image.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: widget.product.image,
+                            fit: BoxFit.contain,
+                            placeholder: (_, _) => const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2)),
+                            errorWidget: (_, _, _) => const Icon(
+                                Icons.broken_image,
+                                color: AppColors.grey),
+                          )
+                        : const Icon(Icons.image_not_supported,
+                            color: AppColors.grey),
                   ),
                 ),
                 if (_discountPct > 0)

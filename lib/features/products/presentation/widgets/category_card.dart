@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
 import 'package:project_alisons/features/products/data/models/category_model.dart';
@@ -29,10 +30,20 @@ class CategoryCard extends StatelessWidget {
                 color: isSelected ? AppColors.primary : Colors.transparent,
                 width: isSelected ? 3 : 0,
               ),
-              image: DecorationImage(
-                image: AssetImage(category.image),
-                fit: BoxFit.cover,
-              ),
+            ),
+            child: ClipOval(
+              child: category.image.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: category.image,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) =>
+                          Container(color: AppColors.greyExtraLight),
+                      errorWidget: (_, _, _) => const Icon(
+                        Icons.broken_image,
+                        color: AppColors.grey,
+                      ),
+                    )
+                  : Container(color: AppColors.greyExtraLight),
             ),
           ),
           const SizedBox(height: 10),
