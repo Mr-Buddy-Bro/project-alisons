@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
+import 'package:project_alisons/core/storage/local_storage.dart';
 import 'package:project_alisons/features/products/data/models/banner_model.dart';
 import 'package:project_alisons/features/products/data/models/home_data_model.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
@@ -23,6 +24,41 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Future<void> _handleHiddenLogout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Do you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true) return;
+
+    try {
+      await LocalStorage.instance.clearAuth();
+      if (!mounted) return;
+      context.go('/login');
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to logout. Please try again.')),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,12 +74,15 @@ class _HomePageState extends State<HomePage> {
         titleSpacing: 16,
         title: Row(
           children: [
-            SvgPicture.asset(
-              SvgAssets.shop,
-              colorFilter:
-                  const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
-              width: 32,
-              height: 32,
+            GestureDetector(
+              onLongPress: _handleHiddenLogout,
+              child: SvgPicture.asset(
+                SvgAssets.shop,
+                colorFilter:
+                    const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
+                width: 32,
+                height: 32,
+              ),
             ),
           ],
         ),
@@ -109,6 +148,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildContent(HomeDataModel data) {
+    final hasAnySection = data.banners.isNotEmpty ||
+        data.categories.isNotEmpty ||
+        data.newArrivals.isNotEmpty ||
+        data.bestSeller.isNotEmpty ||
+        data.flashSale.isNotEmpty ||
+        data.suggestedProducts.isNotEmpty ||
+        data.ourProducts.isNotEmpty;
+
+    if (!hasAnySection) {
+      return _buildEmptyHomeState();
+    }
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,6 +206,45 @@ class _HomePageState extends State<HomePage> {
           ],
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyHomeState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.inventory_2_outlined,
+              size: 56,
+              color: AppColors.grey,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Nothing to show right now',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please try refreshing in a moment.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.greyDark),
+            ),
+            const SizedBox(height: 18),
+            OutlinedButton(
+              onPressed: () => context.read<HomeBloc>().add(HomeDataFetched()),
+              child: const Text('Refresh'),
+            ),
+          ],
+        ),
       ),
     );
   }

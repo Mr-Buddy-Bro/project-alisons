@@ -320,6 +320,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             // Description
             Container(
               color: AppColors.white,
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,13 +395,27 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 width: double.infinity,
                 color: AppColors.white,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-                child: Text(
-                  _detailError ?? 'No related products found',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.greyDark,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Related Products',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _detailError ?? 'No related products found',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.greyDark,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             const SizedBox(height: 8),
