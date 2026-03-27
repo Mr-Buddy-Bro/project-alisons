@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:project_alisons/core/storage/local_storage.dart';
 import 'package:project_alisons/features/auth/presentation/pages/login_page.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
+import 'package:project_alisons/features/cart/presentation/pages/cart_page.dart';
 import 'package:project_alisons/features/products/presentation/pages/home_page.dart';
 import 'package:project_alisons/features/products/presentation/pages/product_detail_page.dart';
 import 'package:project_alisons/features/products/presentation/pages/products_list_page.dart';
@@ -35,6 +36,11 @@ final GoRouter router = GoRouter(
             state.uri.queryParameters['category'];
         return ProductsListPage(category: category);
       },
+    ),
+    GoRoute(
+      path: '/cart',
+      name: 'cart',
+      builder: (context, state) => const CartPage(),
     ),
     GoRoute(
       path: '/product-detail',

@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
 import 'package:project_alisons/core/errors/error_mapper.dart';
+import 'package:project_alisons/features/cart/presentation/bloc/cart_cubit.dart';
 import 'package:project_alisons/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:project_alisons/features/products/data/models/product_detail_data.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
@@ -101,6 +103,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     }
   }
 
+  void _addToCart(ProductModel product) {
+    context.read<CartCubit>().addProduct(product);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${product.name} added to cart')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,7 +120,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         leading: GestureDetector(
           onTap: () => context.pop(),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(18),
             child: SvgPicture.asset(
               SvgAssets.arrowLeft,
               colorFilter:
@@ -132,7 +141,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () => context.push('/cart'),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
               child: SvgPicture.asset(SvgAssets.cart,
@@ -381,7 +390,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 '/product-detail',
                                 extra: related,
                               ),
-                              onAddToCart: () {},
+                              onAddToCart: () => _addToCart(related),
                             ),
                           );
                         },
@@ -428,7 +437,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         child: SizedBox(
           height: 52,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () => _addToCart(_activeProduct),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(

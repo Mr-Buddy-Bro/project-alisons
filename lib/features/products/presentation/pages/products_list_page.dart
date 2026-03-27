@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
+import 'package:project_alisons/features/cart/presentation/bloc/cart_cubit.dart';
 import 'package:project_alisons/features/products/presentation/bloc/products/products_bloc.dart';
 import 'package:project_alisons/features/products/presentation/bloc/products/products_event.dart';
 import 'package:project_alisons/features/products/presentation/bloc/products/products_state.dart';
@@ -149,6 +150,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
                           extra: product,
                         ),
                         onAddToCart: () {
+                          context.read<CartCubit>().addProduct(product);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                                 content:

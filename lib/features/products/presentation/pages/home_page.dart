@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
 import 'package:project_alisons/core/storage/local_storage.dart';
+import 'package:project_alisons/features/cart/presentation/bloc/cart_cubit.dart';
+import 'package:project_alisons/features/cart/presentation/bloc/cart_state.dart';
 import 'package:project_alisons/features/products/data/models/banner_model.dart';
 import 'package:project_alisons/features/products/data/models/home_data_model.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
@@ -24,6 +26,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  void _addToCart(ProductModel product) {
+    context.read<CartCubit>().addProduct(product);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${product.name} added to cart')),
+    );
+  }
+
   Future<void> _handleHiddenLogout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -49,6 +58,8 @@ class _HomePageState extends State<HomePage> {
 
     try {
       await LocalStorage.instance.clearAuth();
+      if (!mounted) return;
+      context.read<CartCubit>().clearCart();
       if (!mounted) return;
       context.go('/login');
     } catch (_) {
@@ -318,7 +329,7 @@ class _HomePageState extends State<HomePage> {
                     '/product-detail',
                     extra: products[index],
                   ),
-                  onAddToCart: () {},
+                  onAddToCart: () => _addToCart(products[index]),
                 ),
               );
             },
@@ -464,15 +475,59 @@ class _HomePageState extends State<HomePage> {
           final color = isActive ? AppColors.primary : AppColors.grey;
           return Expanded(
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {
+                if (index == 2) {
+                  context.push('/cart');
+                }
+              },
               behavior: HitTestBehavior.opaque,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SvgPicture.asset(items[index]['icon']!,
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                      width: 24,
-                      height: 24),
+                  if (index == 2)
+                    BlocBuilder<CartCubit, CartState>(
+                      builder: (context, state) {
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            SvgPicture.asset(
+                              items[index]['icon']!,
+                              colorFilter:
+                                  ColorFilter.mode(color, BlendMode.srcIn),
+                              width: 24,
+                              height: 24,
+                            ),
+                            if (state.totalItems > 0)
+                              Positioned(
+                                top: -6,
+                                right: -10,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 1),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  child: Text(
+                                    '${state.totalItems}',
+                                    style: const TextStyle(
+                                      color: AppColors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    )
+                  else
+                    SvgPicture.asset(items[index]['icon']!,
+                        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                        width: 24,
+                        height: 24),
                   const SizedBox(height: 4),
                   Text(items[index]['label']!,
                       style: TextStyle(

@@ -11,6 +11,7 @@ import 'package:project_alisons/features/products/data/datasources/product_remot
 import 'package:project_alisons/features/products/data/repositories/product_repository.dart';
 import 'package:project_alisons/features/products/domain/usecases/get_home_data_usecase.dart';
 import 'package:project_alisons/features/products/domain/usecases/get_products_usecase.dart';
+import 'package:project_alisons/features/cart/presentation/bloc/cart_cubit.dart';
 import 'package:project_alisons/features/products/presentation/bloc/home/home_bloc.dart';
 import 'package:project_alisons/features/products/presentation/bloc/products/products_bloc.dart';
 
@@ -42,6 +43,9 @@ class MachineTask extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => ProductsBloc(GetProductsUseCase(productRepo)),
+        ),
+        BlocProvider(
+          create: (_) => CartCubit(),
         ),
       ],
       child: MaterialApp.router(
