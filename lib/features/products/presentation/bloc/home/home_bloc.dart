@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:project_alisons/core/errors/error_mapper.dart';
 import 'package:project_alisons/features/products/domain/usecases/get_home_data_usecase.dart';
 import 'home_event.dart';
 import 'home_state.dart';
@@ -19,7 +20,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final data = await _getHomeData();
       emit(HomeLoaded(data));
     } catch (e) {
-      emit(HomeError(e.toString()));
+      emit(HomeError(ErrorMapper.message(e, fallback: 'Failed to load home data')));
     }
   }
 }

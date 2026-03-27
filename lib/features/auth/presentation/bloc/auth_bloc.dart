@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:project_alisons/core/errors/error_mapper.dart';
 import '../../domain/usecases/login_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -22,7 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthSuccess(user));
     } catch (e) {
-      emit(AuthFailure(e.toString().replaceFirst('Exception: ', '')));
+      emit(AuthFailure(ErrorMapper.message(e, fallback: 'Login failed')));
     }
   }
 }

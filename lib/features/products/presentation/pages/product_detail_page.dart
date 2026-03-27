@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
+import 'package:project_alisons/core/errors/error_mapper.dart';
 import 'package:project_alisons/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:project_alisons/features/products/data/models/product_detail_data.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
@@ -27,6 +28,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   List<ProductModel> _relatedProducts = [];
   List<String> _detailImages = [];
   String _description = '';
+  String? _detailError;
   ProductModel? _detailProduct;
 
   List<String> get _images => [
@@ -87,11 +89,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         _detailImages = detail.images;
         _description = detail.description;
         _isFavorite = detail.product.isFavorite;
+        _detailError = null;
         _isLoadingDetails = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoadingDetails = false);
+      setState(() {
+        _detailError = ErrorMapper.message(e, fallback: 'Failed to load product details');
+        _isLoadingDetails = false;
+      });
     }
   }
 
@@ -388,9 +394,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 width: double.infinity,
                 color: AppColors.white,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-                child: const Text(
-                  'No related products found',
-                  style: TextStyle(
+                child: Text(
+                  _detailError ?? 'No related products found',
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.greyDark,
                     fontWeight: FontWeight.w500,

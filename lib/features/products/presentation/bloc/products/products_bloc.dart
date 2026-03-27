@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:project_alisons/core/errors/error_mapper.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
 import 'package:project_alisons/features/products/domain/usecases/get_products_usecase.dart';
 import 'products_event.dart';
@@ -41,7 +42,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         currentPage: 1,
       ));
     } catch (e) {
-      emit(ProductsError(e.toString()));
+      emit(ProductsError(ErrorMapper.message(e, fallback: 'Failed to load products')));
     }
   }
 
@@ -69,7 +70,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         currentPage: nextPage,
       ));
     } catch (e) {
-      emit(ProductsError(e.toString()));
+      emit(ProductsError(ErrorMapper.message(e, fallback: 'Failed to load products')));
     }
   }
 }
