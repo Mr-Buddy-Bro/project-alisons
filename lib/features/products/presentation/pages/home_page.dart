@@ -87,12 +87,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             GestureDetector(
               onLongPress: _handleHiddenLogout,
-              child: SvgPicture.asset(
-                SvgAssets.shop,
-                colorFilter:
-                    const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
-                width: 32,
-                height: 32,
+              child: Image.asset(
+                'assets/images/logo.png',
+                height: 28,
+                fit: BoxFit.contain,
               ),
             ),
           ],

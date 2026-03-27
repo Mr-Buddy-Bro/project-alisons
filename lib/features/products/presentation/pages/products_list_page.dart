@@ -56,7 +56,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
         leading: GestureDetector(
           onTap: () => context.pop(),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: SvgPicture.asset(
               SvgAssets.arrowLeft,
               colorFilter: const ColorFilter.mode(
