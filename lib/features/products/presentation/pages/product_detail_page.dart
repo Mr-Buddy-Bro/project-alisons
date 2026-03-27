@@ -4,7 +4,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:project_alisons/config/assets/svg_assets.dart';
 import 'package:project_alisons/config/theme/app_colors.dart';
+import 'package:project_alisons/features/products/data/datasources/product_remote_datasource.dart';
+import 'package:project_alisons/features/products/data/models/product_detail_data.dart';
 import 'package:project_alisons/features/products/data/models/product_model.dart';
+import 'package:project_alisons/features/products/presentation/widgets/product_card.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final ProductModel product;
@@ -17,19 +20,25 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   final PageController _imageController = PageController();
+  final ProductRemoteDataSource _dataSource = ProductRemoteDataSource();
   int _currentImageIndex = 0;
   bool _isFavorite = false;
+  bool _isLoadingDetails = true;
+  List<ProductModel> _relatedProducts = [];
+  List<String> _detailImages = [];
+  String _description = '';
+  ProductModel? _detailProduct;
 
   List<String> get _images => [
-        widget.product.image,
-        widget.product.image,
-        widget.product.image,
+        if (_detailImages.isNotEmpty) ..._detailImages else widget.product.image,
       ];
 
+  ProductModel get _activeProduct => _detailProduct ?? widget.product;
+
   int get _discountPct =>
-      widget.product.originalPrice > 0
-          ? (((widget.product.originalPrice - widget.product.currentPrice) /
-                          widget.product.originalPrice) *
+      _activeProduct.originalPrice > 0
+          ? (((_activeProduct.originalPrice - _activeProduct.currentPrice) /
+                          _activeProduct.originalPrice) *
                       100)
                   .round()
           : 0;
@@ -38,6 +47,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void initState() {
     super.initState();
     _isFavorite = widget.product.isFavorite;
+    _loadProductDetails();
   }
 
   @override
@@ -57,6 +67,32 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       );
     }
     return const Icon(Icons.image_not_supported, size: 60, color: AppColors.grey);
+  }
+
+  Future<void> _loadProductDetails() async {
+    if (widget.product.slug.isEmpty || widget.product.store.isEmpty) {
+      if (mounted) setState(() => _isLoadingDetails = false);
+      return;
+    }
+
+    try {
+      final ProductDetailData detail = await _dataSource.getProductDetailData(
+        slug: widget.product.slug,
+        store: widget.product.store,
+      );
+      if (!mounted) return;
+      setState(() {
+        _detailProduct = detail.product;
+        _relatedProducts = detail.relatedProducts;
+        _detailImages = detail.images;
+        _description = detail.description;
+        _isFavorite = detail.product.isFavorite;
+        _isLoadingDetails = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoadingDetails = false);
+    }
   }
 
   @override
@@ -189,7 +225,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.product.name,
+                              _activeProduct.name,
                               style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -197,13 +233,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              widget.product.category,
+                              _activeProduct.category,
                               style: const TextStyle(
                                   fontSize: 13, color: AppColors.greyDark),
                             ),
-                            if (widget.product.store.isNotEmpty)
+                            if (_activeProduct.store.isNotEmpty)
                               Text(
-                                widget.product.store,
+                                _activeProduct.store,
                                 style: const TextStyle(
                                     fontSize: 12, color: AppColors.primary),
                               ),
@@ -220,7 +256,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         child: Row(
                           children: [
                             Text(
-                              '${widget.product.symbolLeft} ${widget.product.currentPrice.toStringAsFixed(2)}',
+                              '${_activeProduct.symbolLeft} ${_activeProduct.currentPrice.toStringAsFixed(2)}',
                               style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -228,7 +264,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             ),
                             const SizedBox(width: 10),
                             Text(
-                              '${widget.product.symbolLeft} ${widget.product.originalPrice.toStringAsFixed(2)}',
+                              '${_activeProduct.symbolLeft} ${_activeProduct.originalPrice.toStringAsFixed(2)}',
                               style: const TextStyle(
                                   fontSize: 14,
                                   color: AppColors.grey,
@@ -289,8 +325,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           color: AppColors.black)),
                   const SizedBox(height: 10),
                   Text(
-                    'Premium quality ${widget.product.name} sourced directly from trusted suppliers. '
-                    'Carefully processed to retain natural goodness and deliver the best quality.',
+                    _description.isNotEmpty
+                        ? _description
+                        : 'Premium quality ${_activeProduct.name} sourced directly from trusted suppliers. '
+                            'Carefully processed to retain natural goodness and deliver the best quality.',
                     style: const TextStyle(
                         fontSize: 14, color: AppColors.greyDark, height: 1.6),
                   ),
@@ -298,6 +336,67 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
             ),
 
+            if (_isLoadingDetails)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            if (_relatedProducts.isNotEmpty)
+              Container(
+                color: AppColors.white,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Related Products',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 260,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _relatedProducts.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final related = _relatedProducts[index];
+                          return SizedBox(
+                            width: 170,
+                            child: ProductCard(
+                              product: related,
+                              isCompact: true,
+                              onTap: () => context.push(
+                                '/product-detail',
+                                extra: related,
+                              ),
+                              onAddToCart: () {},
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (!_isLoadingDetails && _relatedProducts.isEmpty)
+              Container(
+                width: double.infinity,
+                color: AppColors.white,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                child: const Text(
+                  'No related products found',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.greyDark,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             const SizedBox(height: 8),
           ],
         ),

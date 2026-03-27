@@ -3,6 +3,7 @@ import 'package:project_alisons/core/network/api_client.dart';
 import 'package:project_alisons/core/network/api_constants.dart';
 import 'package:project_alisons/core/storage/local_storage.dart';
 import '../models/home_data_model.dart';
+import '../models/product_detail_data.dart';
 import '../models/product_model.dart';
 
 class ProductRemoteDataSource {
@@ -65,6 +66,24 @@ class ProductRemoteDataSource {
     final product = data['product'] as Map<String, dynamic>?;
     if (product == null) throw Exception('Product not found');
     return ProductModel.fromJson(product);
+  }
+
+  Future<ProductDetailData> getProductDetailData({
+    required String slug,
+    required String store,
+  }) async {
+    final response = await _dio.post(
+      '${ApiConstants.productDetailEndpoint}/$slug',
+      queryParameters: {
+        ..._authParams,
+        'store': store,
+      },
+    );
+
+    final data = response.data as Map<String, dynamic>;
+    final product = data['product'] as Map<String, dynamic>?;
+    if (product == null) throw Exception('Product not found');
+    return ProductDetailData.fromJson(data);
   }
 
   Future<void> addToCart({
